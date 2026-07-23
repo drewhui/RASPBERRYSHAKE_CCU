@@ -286,6 +286,29 @@ function initTheme() {
   });
 }
 
+function initTabs() {
+  const tabs = [
+    { btn: "tab-btn-dashboard", panel: "panel-dashboard", key: "dashboard" },
+    { btn: "tab-btn-architecture", panel: "panel-architecture", key: "architecture" },
+  ];
+  const saved = localStorage.getItem("tab") || "dashboard";
+
+  function select(key) {
+    for (const t of tabs) {
+      const active = t.key === key;
+      document.getElementById(t.btn).setAttribute("aria-selected", String(active));
+      document.getElementById(t.panel).hidden = !active;
+    }
+    localStorage.setItem("tab", key);
+  }
+
+  for (const t of tabs) {
+    document.getElementById(t.btn).addEventListener("click", () => select(t.key));
+  }
+  select(saved);
+}
+
 initTheme();
+initTabs();
 render();
 setInterval(render, POLL_MS);

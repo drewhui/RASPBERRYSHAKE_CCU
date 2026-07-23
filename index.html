@@ -19,12 +19,17 @@
     <button id="theme-toggle" class="theme-toggle" type="button" aria-label="切換深色/淺色主題">◐</button>
   </header>
 
+  <div class="tab-nav" role="tablist" aria-label="頁面切換">
+    <button class="tab-btn" id="tab-btn-dashboard" role="tab" aria-selected="true" aria-controls="panel-dashboard" type="button">即時監測</button>
+    <button class="tab-btn" id="tab-btn-architecture" role="tab" aria-selected="false" aria-controls="panel-architecture" type="button">系統架構</button>
+  </div>
+
   <div id="stale-banner" class="stale-banner" hidden>
     <span class="status-dot status-warning" aria-hidden="true"></span>
     <span id="stale-text"></span>
   </div>
 
-  <main>
+  <main id="panel-dashboard" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-dashboard">
     <section class="kpi-row" aria-label="即時測值">
       <div class="stat-tile">
         <div class="stat-label">現在震度</div>
@@ -77,6 +82,95 @@
       </div>
     </section>
   </main>
+
+  <section id="panel-architecture" class="tab-panel architecture" role="tabpanel" aria-labelledby="tab-btn-architecture" hidden>
+    <p class="arch-intro">
+      這個網站背後是一套跑在 Raspberry Pi 4 上的簡化版地震早期預警（EEW）系統，
+      核心是 <a href="http://www.earthwormcentral.org/" target="_blank" rel="noopener">Earthworm</a>
+      8.0——地震學界行之有年的開源即時地震資料處理框架，用 Docker 容器化部署
+      （ARM64）。系統即時接收 RaspberryShake RE81D 地震儀的資料，同時跑三層告警
+      （單站 onsite 快報、測站即時震度、多站協同的網路型 EEW 解算）。
+      <strong>這個網站顯示的 PGA / PGV / 波形，是這套系統其中一條資料支線的公開
+      輸出</strong>，不是獨立產品。完整版見
+      <a href="https://github.com/drewhui/RASPBERRYSHAKE_CCU/blob/main/ARCHITECTURE.md">ARCHITECTURE.md</a>。
+    </p>
+
+    <div class="chart-card">
+      <div class="chart-card-head"><h2>資料來源</h2></div>
+      <ul class="arch-list">
+        <li><strong>RaspberryShake RE81D</strong>（RS1D 型號，單一垂直分量檢波器，100 sps）：跟 Pi 在同一個區域網路，透過 SeedLink 協定即時串流波形——這是本站顯示資料的來源。</li>
+        <li><strong>IRIS 遠端測站</strong>（中央氣象署寬頻地動觀測網 TW 網 + IU 網 TATO 站）：透過網際網路連到 IRIS 的 SeedLink 伺服器拉取即時資料，提供多站定位 / 規模估算所需的額外測站，不是本站顯示的對象，但共用同一套 Earthworm 處理鏈。</li>
+      </ul>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-card-head"><h2>Earthworm 核心架構</h2></div>
+      <p>Earthworm 用「共享記憶體環（ring）+ 多個獨立小程式（module）」的模型運作：每個 module 是獨立 process，讀寫特定的 ring，靠 ring 裡不同類型的訊息（波形、pick、事件⋯）溝通，彼此不直接呼叫。目前跑的 module（依啟動順序）：</p>
+      <div class="table-wrap">
+        <table class="arch-table">
+          <thead><tr><th>Module</th><th>角色</th></tr></thead>
+          <tbody>
+            <tr><td><code>statmgr</code></td><td>系統心跳 / 健康監控</td></tr>
+            <tr><td><code>slink2ew</code> ×2</td><td>SeedLink 客戶端，一個接 IRIS 遠端測站、一個接本地 RaspberryShake，寫入 <code>WAVE_RING</code></td></tr>
+            <tr><td><code>pick_ew</code></td><td>波形挑波（picking）：STA/LTA 演算法即時偵測 P 波到時，同時算出 onsite 快報用的 Pa/Pv/Pd/τc，寫入 <code>PICK_RING</code></td></tr>
+            <tr><td><code>tcpd</code></td><td>多站協同（coincidence）關聯：比對多測站 P 波 pick，達門檻站數才組成事件解，估算震央與規模（Mpd），寫入 <code>EEW_RING</code></td></tr>
+            <tr><td><code>dcsn_xml</code></td><td>把 <code>tcpd</code> 的事件解格式化成 EEW 警報 XML</td></tr>
+            <tr><td><code>wave_serverV</code></td><td>波形環狀歸檔，供外部工具（如 Swarm）查詢 / 繪圖</td></tr>
+            <tr><td><code>diskmgr</code> / <code>copystatus</code></td><td>磁碟空間管理、狀態訊息轉發到 <code>HYPO_RING</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-card-head"><h2>資料流程（RaspberryShake → 這個網站）</h2></div>
+      <div class="pipeline">
+        <div class="pipe-box">RaspberryShake RE81D<br><span class="pipe-sub">SHZ, 100sps</span></div>
+        <div class="pipe-arrow">SeedLink →</div>
+        <div class="pipe-box">slink2ew<br><span class="pipe-sub">第二個實例</span></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box">WAVE_RING</div>
+      </div>
+      <div class="pipeline pipeline-branch">
+        <div class="pipe-arrow">↓</div>
+      </div>
+      <div class="pipeline">
+        <div class="pipe-box">pick_ew<br><span class="pipe-sub">P 波挑波 + onsite</span></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box">tcpd → dcsn_xml<br><span class="pipe-sub">多站定位 / 規模</span></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box">station_watch.py<br><span class="pipe-sub">即時 PGV/PGA、CWB 震度</span></div>
+      </div>
+      <div class="pipeline">
+        <div class="pipe-arrow">↓</div>
+      </div>
+      <div class="pipeline">
+        <div class="pipe-box">本站快照 + 趨勢 + 逐日封存</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box">dashboard_push.sh<br><span class="pipe-sub">host cron，每分鐘</span></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box">GitHub Pages<br><span class="pipe-sub">這個網站</span></div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-card-head"><h2>三層告警（由快到慢，由單站到多站）</h2></div>
+      <ol class="arch-list arch-list-ordered">
+        <li><strong>Onsite τc-Pd 快報</strong>——<code>pick_ew</code> 每完成一個 P 波 pick 就順便算出 Pa/Pv/Pd/τc，套用 Wu &amp; Kanamori 準則（Pd、τc 同時超過門檻）判斷是否可能是具破壞力的地震。單一測站、P 波到站後數秒內就有結果，是最快但誤報率也最高的一層。</li>
+        <li><strong>測站即時震度</strong>——自訂的 <code>station_watch.py</code>（不是 Earthworm 內建，用 PyEW 直接讀 <code>WAVE_RING</code>）即時把原始計數值換算成地動速度，量測 PGV，再微分成 PGA，對照中央氣象署 2020 震度分級表。這是「量出來的」不是預測，不會錯，只受限於資料延遲（本地 RaspberryShake 約 1–2 秒，IRIS 遠端站約 10–20 秒）。</li>
+        <li><strong>網路型 EEW</strong>——<code>tcpd</code> 需要多個測站的 P 波 pick 互相吻合（到時、距離都在門檻內）才會組成一組解，<code>dcsn_xml</code> 再轉成正式 XML 警報。這層最穩定（多站交叉驗證），但也最慢，且需要數個測站同時觸發才能運作——單靠這一台 RaspberryShake 無法獨立完成，解算結果不在這個網站顯示範圍內。</li>
+      </ol>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-card-head"><h2>已知限制</h2></div>
+      <ul class="arch-list">
+        <li>RaspberryShake RE81D 是 RS1D 型號，硬體上只有一個垂直分量檢波器，沒有水平分量、沒有強震型加速度計——4 級以上的量測可能因訊號削波而失真。</li>
+        <li>測站位置只標示大略城市，不公開精確座標。</li>
+        <li>GitHub Pages 的 CDN 對資料檔另有最長 10 分鐘快取，實際顯示會落後現況約 1–11 分鐘。</li>
+      </ul>
+    </div>
+  </section>
 
   <footer class="site-footer">
     <p>資料每分鐘同步一次，加上網頁快取，實際顯示可能落後現況約 1–11 分鐘，非逐秒即時。震度為現場實測換算值，非官方發布資料，僅供參考。時間皆為台灣時間（UTC+8）。</p>
