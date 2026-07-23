@@ -4,7 +4,10 @@ const STATION = "RE81D";
 const SNAPSHOT_URL = `data/snapshot_${STATION}.json`;
 const HISTORY_URL = `data/history_${STATION}.json`;
 const POLL_MS = 60_000;
-const STALE_AFTER_S = 10 * 60; // no fresh snapshot in 10 min => flag as stale
+// GitHub Pages' CDN caches data/*.json for up to 10 min (Cache-Control:
+// max-age=600) on top of the 5-min push interval, so up to ~15 min of
+// normal lag is expected — only flag staleness well past that.
+const STALE_AFTER_S = 20 * 60;
 
 const LEVEL_NAMES = {
   0: "0級", 1: "1級", 2: "2級", 3: "3級", 4: "4級",
