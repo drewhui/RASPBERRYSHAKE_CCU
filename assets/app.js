@@ -1,8 +1,10 @@
 "use strict";
 
-const STATION = "RE81D";
-const SNAPSHOT_URL = `data/snapshot_${STATION}.json`;
-const HISTORY_URL = `data/history_${STATION}.json`;
+const DEFAULT_STATION = "RE81D";
+const STATIONS_URL = "data/stations.json";
+let currentStation = DEFAULT_STATION;
+const snapshotUrl = (sta) => `data/snapshot_${sta}.json`;
+const historyUrl = (sta) => `data/history_${sta}.json`;
 const POLL_MS = 60_000;
 // GitHub Pages' CDN caches data/*.json for up to 10 min (Cache-Control:
 // max-age=600) on top of the 5-min push interval, so up to ~15 min of
@@ -205,17 +207,19 @@ function renderSparkline(svg, values) {
 // ------------------------------------------------------------------ main --
 
 async function render() {
+  const station = currentStation;
   let snapshot, history;
   try {
     [snapshot, history] = await Promise.all([
-      fetchJSON(SNAPSHOT_URL),
-      fetchJSON(HISTORY_URL),
+      fetchJSON(snapshotUrl(station)),
+      fetchJSON(historyUrl(station)),
     ]);
   } catch (e) {
     document.getElementById("station-line").textContent = "無法載入資料";
     console.error(e);
     return;
   }
+  if (station !== currentStation) return; // user switched stations mid-fetch
 
   document.getElementById("station-line").textContent =
     `${snapshot.station}.${snapshot.network} · ${snapshot.location_label}`;
@@ -308,7 +312,37 @@ function initTabs() {
   select(saved);
 }
 
+async function initStationSelector() {
+  const select = document.getElementById("station-select");
+  let stations = [{ station: DEFAULT_STATION, network: "AM", label: DEFAULT_STATION }];
+  try {
+    const data = await fetchJSON(STATIONS_URL);
+    if (Array.isArray(data.stations) && data.stations.length) stations = data.stations;
+  } catch (e) {
+    console.error("failed to load station list, falling back to default", e);
+  }
+
+  select.replaceChildren();
+  for (const s of stations) {
+    const opt = document.createElement("option");
+    opt.value = s.station;
+    opt.textContent = `${s.station}.${s.network} — ${s.label}`;
+    select.appendChild(opt);
+  }
+
+  const saved = localStorage.getItem("station");
+  const valid = stations.some((s) => s.station === saved);
+  currentStation = valid ? saved : DEFAULT_STATION;
+  select.value = currentStation;
+
+  select.addEventListener("change", () => {
+    currentStation = select.value;
+    localStorage.setItem("station", currentStation);
+    render();
+  });
+}
+
 initTheme();
 initTabs();
-render();
+initStationSelector().then(render);
 setInterval(render, POLL_MS);

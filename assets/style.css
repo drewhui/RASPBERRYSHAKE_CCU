@@ -148,6 +148,28 @@ body {
 .status-serious  { background: var(--status-serious); }
 .status-critical { background: var(--status-critical); }
 
+.station-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.station-picker label {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+.station-picker select {
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
 .kpi-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
