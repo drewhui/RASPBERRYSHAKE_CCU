@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RaspberryShake 即時地震監測</title>
+<meta name="description" content="RaspberryShake 地震儀即時 PGA / PGV / 波形監測儀表板">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌐</text></svg>">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="page">
+
+  <header class="site-header">
+    <div class="title-block">
+      <h1>RaspberryShake 即時地震監測</h1>
+      <p class="subtitle" id="station-line">載入中…</p>
+    </div>
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="切換深色/淺色主題">◐</button>
+  </header>
+
+  <div id="stale-banner" class="stale-banner" hidden>
+    <span class="status-dot status-warning" aria-hidden="true"></span>
+    <span id="stale-text"></span>
+  </div>
+
+  <main>
+    <section class="kpi-row" aria-label="即時測值">
+      <div class="stat-tile">
+        <div class="stat-label">現在震度</div>
+        <div class="stat-value" id="tile-intensity">—</div>
+        <div class="stat-badge" id="tile-intensity-badge"></div>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-label">PGV 最大速度</div>
+        <div class="stat-value"><span id="tile-pgv">—</span><span class="stat-unit">cm/s</span></div>
+        <svg class="sparkline" id="spark-pgv" viewBox="0 0 120 32" preserveAspectRatio="none"></svg>
+      </div>
+      <div class="stat-tile">
+        <div class="stat-label">PGA 最大加速度</div>
+        <div class="stat-value"><span id="tile-pga">—</span><span class="stat-unit">gal</span></div>
+        <svg class="sparkline" id="spark-pga" viewBox="0 0 120 32" preserveAspectRatio="none"></svg>
+      </div>
+    </section>
+
+    <section class="chart-card" aria-label="即時波形">
+      <div class="chart-card-head">
+        <h2>即時波形（垂直分量，最近 20 秒）</h2>
+        <span class="chart-unit">cm/s</span>
+      </div>
+      <div class="chart-wrap">
+        <svg id="chart-waveform" class="chart-svg" viewBox="0 0 640 200" preserveAspectRatio="none"></svg>
+        <div class="tooltip" id="tooltip-waveform" hidden></div>
+      </div>
+    </section>
+
+    <section class="chart-grid">
+      <div class="chart-card" aria-label="PGA 趨勢">
+        <div class="chart-card-head">
+          <h2>PGA 趨勢（近 24 小時）</h2>
+          <span class="chart-unit">gal</span>
+        </div>
+        <div class="chart-wrap">
+          <svg id="chart-pga" class="chart-svg" viewBox="0 0 640 180" preserveAspectRatio="none"></svg>
+          <div class="tooltip" id="tooltip-pga" hidden></div>
+        </div>
+      </div>
+      <div class="chart-card" aria-label="PGV 趨勢">
+        <div class="chart-card-head">
+          <h2>PGV 趨勢（近 24 小時）</h2>
+          <span class="chart-unit">cm/s</span>
+        </div>
+        <div class="chart-wrap">
+          <svg id="chart-pgv" class="chart-svg" viewBox="0 0 640 180" preserveAspectRatio="none"></svg>
+          <div class="tooltip" id="tooltip-pgv" hidden></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>資料每 5 分鐘同步一次，非逐秒即時。震度為現場實測換算值，非官方發布資料，僅供參考。時間皆為台灣時間（UTC+8）。</p>
+    <p id="updated-line">—</p>
+  </footer>
+
+</div>
+<script src="assets/app.js"></script>
+</body>
+</html>
