@@ -11,33 +11,87 @@ const POLL_MS = 60_000;
 // normal lag is expected — only flag staleness well past that.
 const STALE_AFTER_S = 20 * 60;
 
+// ------------------------------------------------------------------- i18n --
+
+let currentLang = "zh";
+
 const LEVEL_NAMES = {
-  0: "0級", 1: "1級", 2: "2級", 3: "3級", 4: "4級",
-  5: "5弱", 6: "5強", 7: "6弱", 8: "6強", 9: "7級",
+  zh: { 0: "0級", 1: "1級", 2: "2級", 3: "3級", 4: "4級", 5: "5弱", 6: "5強", 7: "6弱", 8: "6強", 9: "7級" },
+  en: { 0: "Level 0", 1: "Level 1", 2: "Level 2", 3: "Level 3", 4: "Level 4", 5: "Level 5-", 6: "Level 5+", 7: "Level 6-", 8: "Level 6+", 9: "Level 7" },
+};
+
+const TIER_LABELS = {
+  zh: { good: "輕微", warning: "有感", serious: "強烈", critical: "劇烈" },
+  en: { good: "Minor", warning: "Felt", serious: "Strong", critical: "Severe" },
+};
+
+const STATION_LABEL_MAP = {
+  "台北": "Taipei",
+  "中央氣象署寬頻測站": "CWA Broadband Station",
+};
+
+const STRINGS = {
+  zh: {
+    pageTitle: "RaspberryShake 即時地震監測",
+    metaDescription: "RaspberryShake 地震儀即時 PGA / PGV / 波形監測儀表板",
+    themeToggleAria: "切換深色/淺色主題",
+    langToggleLabel: "EN",
+    failedLoad: "無法載入資料",
+    staleText: (min) => `資料已 ${min} 分鐘未更新，可能是測站或同步流程中斷 — 以下數值非目前即時狀態`,
+    updatedLine: (clock, rel) => `最後同步：${clock}（${rel}）`,
+    emptyGeneric: "尚無資料",
+    emptyWaveform: "尚無波形資料",
+    justNow: "剛剛",
+    secondsAgo: (n) => `${n} 秒前`,
+    minutesAgo: (n) => `${n} 分鐘前`,
+    hoursAgo: (n) => `${n} 小時前`,
+  },
+  en: {
+    pageTitle: "RaspberryShake Live Seismic Monitor",
+    metaDescription: "Live PGA / PGV / waveform dashboard for a RaspberryShake seismometer",
+    themeToggleAria: "Toggle dark/light theme",
+    langToggleLabel: "中",
+    failedLoad: "Failed to load data",
+    staleText: (min) => `Data hasn't updated in ${min} min — the station or sync pipeline may be interrupted. Values below are not current.`,
+    updatedLine: (clock, rel) => `Last synced: ${clock} (${rel})`,
+    emptyGeneric: "No data yet",
+    emptyWaveform: "No waveform data yet",
+    justNow: "just now",
+    secondsAgo: (n) => `${n}s ago`,
+    minutesAgo: (n) => `${n}m ago`,
+    hoursAgo: (n) => `${n}h ago`,
+  },
 };
 
 function tierFor(level) {
-  if (level <= 1) return { tier: "good", label: "輕微" };
-  if (level <= 3) return { tier: "warning", label: "有感" };
-  if (level <= 5) return { tier: "serious", label: "強烈" };
-  return { tier: "critical", label: "劇烈" };
+  if (level <= 1) return { tier: "good", label: TIER_LABELS[currentLang].good };
+  if (level <= 3) return { tier: "warning", label: TIER_LABELS[currentLang].warning };
+  if (level <= 5) return { tier: "serious", label: TIER_LABELS[currentLang].serious };
+  return { tier: "critical", label: TIER_LABELS[currentLang].critical };
 }
 
 function relTime(iso) {
+  const S = STRINGS[currentLang];
   const t = new Date(iso).getTime();
   const diffS = Math.max(0, (Date.now() - t) / 1000);
-  if (diffS < 5) return "剛剛";
-  if (diffS < 60) return `${Math.floor(diffS)} 秒前`;
-  if (diffS < 3600) return `${Math.floor(diffS / 60)} 分鐘前`;
-  return `${Math.floor(diffS / 3600)} 小時前`;
+  if (diffS < 5) return S.justNow;
+  if (diffS < 60) return S.secondsAgo(Math.floor(diffS));
+  if (diffS < 3600) return S.minutesAgo(Math.floor(diffS / 60));
+  return S.hoursAgo(Math.floor(diffS / 3600));
 }
 
 function clockTime(t) {
-  return new Date(t).toLocaleTimeString("zh-TW", { hour12: false, timeZone: "Asia/Taipei" });
+  const locale = currentLang === "en" ? "en-GB" : "zh-TW";
+  return new Date(t).toLocaleTimeString(locale, { hour12: false, timeZone: "Asia/Taipei" });
 }
 
 function fmt(n, digits) {
   return Number.isFinite(n) ? n.toFixed(digits) : "—";
+}
+
+function translateStationLabel(label) {
+  if (currentLang !== "en") return label;
+  return STATION_LABEL_MAP[label] ?? label;
 }
 
 async function fetchJSON(url) {
@@ -78,7 +132,7 @@ function nearestIndex(points, t) {
 function renderLineChart(svg, tooltip, points, opts) {
   const {
     unit = "", yFmt = (v) => fmt(v, 2), xFmt = clockTime,
-    symmetric = false, emptyMessage = "尚無資料",
+    symmetric = false, emptyMessage = STRINGS[currentLang].emptyGeneric,
   } = opts;
 
   while (svg.firstChild) svg.removeChild(svg.firstChild);
@@ -207,6 +261,7 @@ function renderSparkline(svg, values) {
 // ------------------------------------------------------------------ main --
 
 async function render() {
+  const S = STRINGS[currentLang];
   const station = currentStation;
   let snapshot, history;
   try {
@@ -215,35 +270,34 @@ async function render() {
       fetchJSON(historyUrl(station)),
     ]);
   } catch (e) {
-    document.getElementById("station-line").textContent = "無法載入資料";
+    document.getElementById("station-line").textContent = S.failedLoad;
     console.error(e);
     return;
   }
   if (station !== currentStation) return; // user switched stations mid-fetch
 
   document.getElementById("station-line").textContent =
-    `${snapshot.station}.${snapshot.network} · ${snapshot.location_label}`;
+    `${snapshot.station}.${snapshot.network} · ${translateStationLabel(snapshot.location_label)}`;
 
   const ageS = (Date.now() - new Date(snapshot.generated_at).getTime()) / 1000;
   const staleBanner = document.getElementById("stale-banner");
   if (ageS > STALE_AFTER_S) {
     staleBanner.hidden = false;
-    document.getElementById("stale-text").textContent =
-      `資料已 ${Math.floor(ageS / 60)} 分鐘未更新，可能是測站或同步流程中斷 — 以下數值非目前即時狀態`;
+    document.getElementById("stale-text").textContent = S.staleText(Math.floor(ageS / 60));
   } else {
     staleBanner.hidden = true;
   }
 
   const cur = snapshot.current;
   const { tier, label } = tierFor(cur.intensity_level);
-  document.getElementById("tile-intensity").textContent = LEVEL_NAMES[cur.intensity_level] ?? "—";
+  document.getElementById("tile-intensity").textContent = LEVEL_NAMES[currentLang][cur.intensity_level] ?? "—";
   const badge = document.getElementById("tile-intensity-badge");
   badge.innerHTML = `<span class="status-dot status-${tier}"></span><span>${label}</span>`;
   document.getElementById("tile-pgv").textContent = fmt(cur.pgv_cms, 3);
   document.getElementById("tile-pga").textContent = fmt(cur.pga_gal, 2);
 
   document.getElementById("updated-line").textContent =
-    `最後同步：${clockTime(new Date(snapshot.generated_at).getTime())}（${relTime(snapshot.generated_at)}）`;
+    S.updatedLine(clockTime(new Date(snapshot.generated_at).getTime()), relTime(snapshot.generated_at));
 
   // waveform
   const wf = snapshot.waveform;
@@ -253,7 +307,7 @@ async function render() {
     document.getElementById("chart-waveform"),
     document.getElementById("tooltip-waveform"),
     wfPoints,
-    { unit: "cm/s", yFmt: (v) => fmt(v, 3), symmetric: true, emptyMessage: "尚無波形資料" }
+    { unit: "cm/s", yFmt: (v) => fmt(v, 3), symmetric: true, emptyMessage: S.emptyWaveform }
   );
 
   // trends
@@ -312,28 +366,34 @@ function initTabs() {
   select(saved);
 }
 
+let knownStations = [{ station: DEFAULT_STATION, network: "AM", label: DEFAULT_STATION }];
+
+function renderStationOptions() {
+  const select = document.getElementById("station-select");
+  const selected = select.value || currentStation;
+  select.replaceChildren();
+  for (const s of knownStations) {
+    const opt = document.createElement("option");
+    opt.value = s.station;
+    opt.textContent = `${s.station}.${s.network} — ${translateStationLabel(s.label)}`;
+    select.appendChild(opt);
+  }
+  select.value = selected;
+}
+
 async function initStationSelector() {
   const select = document.getElementById("station-select");
-  let stations = [{ station: DEFAULT_STATION, network: "AM", label: DEFAULT_STATION }];
   try {
     const data = await fetchJSON(STATIONS_URL);
-    if (Array.isArray(data.stations) && data.stations.length) stations = data.stations;
+    if (Array.isArray(data.stations) && data.stations.length) knownStations = data.stations;
   } catch (e) {
     console.error("failed to load station list, falling back to default", e);
   }
 
-  select.replaceChildren();
-  for (const s of stations) {
-    const opt = document.createElement("option");
-    opt.value = s.station;
-    opt.textContent = `${s.station}.${s.network} — ${s.label}`;
-    select.appendChild(opt);
-  }
-
   const saved = localStorage.getItem("station");
-  const valid = stations.some((s) => s.station === saved);
+  const valid = knownStations.some((s) => s.station === saved);
   currentStation = valid ? saved : DEFAULT_STATION;
-  select.value = currentStation;
+  renderStationOptions();
 
   select.addEventListener("change", () => {
     currentStation = select.value;
@@ -342,6 +402,30 @@ async function initStationSelector() {
   });
 }
 
+function applyLangMeta() {
+  const S = STRINGS[currentLang];
+  document.documentElement.lang = currentLang === "en" ? "en" : "zh-Hant";
+  document.documentElement.dataset.lang = currentLang;
+  document.title = S.pageTitle;
+  document.querySelector('meta[name="description"]').setAttribute("content", S.metaDescription);
+  document.getElementById("theme-toggle").setAttribute("aria-label", S.themeToggleAria);
+  document.getElementById("lang-toggle").textContent = S.langToggleLabel;
+}
+
+function initLang() {
+  const saved = localStorage.getItem("lang");
+  currentLang = saved === "en" ? "en" : "zh";
+  applyLangMeta();
+  document.getElementById("lang-toggle").addEventListener("click", () => {
+    currentLang = currentLang === "en" ? "zh" : "en";
+    localStorage.setItem("lang", currentLang);
+    applyLangMeta();
+    renderStationOptions();
+    render();
+  });
+}
+
+initLang();
 initTheme();
 initTabs();
 initStationSelector().then(render);

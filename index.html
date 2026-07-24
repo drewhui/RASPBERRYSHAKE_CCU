@@ -13,15 +13,18 @@
 
   <header class="site-header">
     <div class="title-block">
-      <h1>RaspberryShake 即時地震監測</h1>
-      <p class="subtitle" id="station-line">載入中…</p>
+      <h1><span lang="zh-Hant">RaspberryShake 即時地震監測</span><span lang="en">RaspberryShake Live Seismic Monitor</span></h1>
+      <p class="subtitle" id="station-line"><span lang="zh-Hant">載入中…</span><span lang="en">Loading…</span></p>
     </div>
-    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="切換深色/淺色主題">◐</button>
+    <div class="header-controls">
+      <button id="lang-toggle" class="lang-toggle" type="button" aria-label="Switch language / 切換語言">EN</button>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="切換深色/淺色主題">◐</button>
+    </div>
   </header>
 
   <div class="tab-nav" role="tablist" aria-label="頁面切換">
-    <button class="tab-btn" id="tab-btn-dashboard" role="tab" aria-selected="true" aria-controls="panel-dashboard" type="button">即時監測</button>
-    <button class="tab-btn" id="tab-btn-architecture" role="tab" aria-selected="false" aria-controls="panel-architecture" type="button">系統架構</button>
+    <button class="tab-btn" id="tab-btn-dashboard" role="tab" aria-selected="true" aria-controls="panel-dashboard" type="button"><span lang="zh-Hant">即時監測</span><span lang="en">Live Dashboard</span></button>
+    <button class="tab-btn" id="tab-btn-architecture" role="tab" aria-selected="false" aria-controls="panel-architecture" type="button"><span lang="zh-Hant">系統架構</span><span lang="en">Architecture</span></button>
   </div>
 
   <div id="stale-banner" class="stale-banner" hidden>
@@ -31,23 +34,23 @@
 
   <main id="panel-dashboard" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-dashboard">
     <div class="station-picker">
-      <label for="station-select">測站</label>
+      <label for="station-select"><span lang="zh-Hant">測站</span><span lang="en">Station</span></label>
       <select id="station-select"></select>
     </div>
 
     <section class="kpi-row" aria-label="即時測值">
       <div class="stat-tile">
-        <div class="stat-label">現在震度</div>
+        <div class="stat-label"><span lang="zh-Hant">現在震度</span><span lang="en">Current Intensity</span></div>
         <div class="stat-value" id="tile-intensity">—</div>
         <div class="stat-badge" id="tile-intensity-badge"></div>
       </div>
       <div class="stat-tile">
-        <div class="stat-label">PGV 最大速度</div>
+        <div class="stat-label"><span lang="zh-Hant">PGV 最大速度</span><span lang="en">PGV Peak Velocity</span></div>
         <div class="stat-value"><span id="tile-pgv">—</span><span class="stat-unit">cm/s</span></div>
         <svg class="sparkline" id="spark-pgv" viewBox="0 0 120 32" preserveAspectRatio="none"></svg>
       </div>
       <div class="stat-tile">
-        <div class="stat-label">PGA 最大加速度</div>
+        <div class="stat-label"><span lang="zh-Hant">PGA 最大加速度</span><span lang="en">PGA Peak Acceleration</span></div>
         <div class="stat-value"><span id="tile-pga">—</span><span class="stat-unit">gal</span></div>
         <svg class="sparkline" id="spark-pga" viewBox="0 0 120 32" preserveAspectRatio="none"></svg>
       </div>
@@ -55,7 +58,7 @@
 
     <section class="chart-card" aria-label="即時波形">
       <div class="chart-card-head">
-        <h2>即時波形（垂直分量，最近 20 秒）</h2>
+        <h2><span lang="zh-Hant">即時波形（垂直分量，最近 20 秒）</span><span lang="en">Live Waveform (vertical component, last 20s)</span></h2>
         <span class="chart-unit">cm/s</span>
       </div>
       <div class="chart-wrap">
@@ -67,7 +70,7 @@
     <section class="chart-grid">
       <div class="chart-card" aria-label="PGA 趨勢">
         <div class="chart-card-head">
-          <h2>PGA 趨勢（近 24 小時）</h2>
+          <h2><span lang="zh-Hant">PGA 趨勢（近 24 小時）</span><span lang="en">PGA Trend (last 24h)</span></h2>
           <span class="chart-unit">gal</span>
         </div>
         <div class="chart-wrap">
@@ -77,7 +80,7 @@
       </div>
       <div class="chart-card" aria-label="PGV 趨勢">
         <div class="chart-card-head">
-          <h2>PGV 趨勢（近 24 小時）</h2>
+          <h2><span lang="zh-Hant">PGV 趨勢（近 24 小時）</span><span lang="en">PGV Trend (last 24h)</span></h2>
           <span class="chart-unit">cm/s</span>
         </div>
         <div class="chart-wrap">
@@ -89,6 +92,8 @@
   </main>
 
   <section id="panel-architecture" class="tab-panel architecture" role="tabpanel" aria-labelledby="tab-btn-architecture" hidden>
+
+  <div lang="zh-Hant">
     <p class="arch-intro">
       這個網站背後是一套跑在 Raspberry Pi 4 上的簡化版地震早期預警（EEW）系統，
       核心是 <a href="http://www.earthwormcentral.org/" target="_blank" rel="noopener">Earthworm</a>
@@ -175,11 +180,109 @@
         <li>GitHub Pages 的 CDN 對資料檔另有最長 10 分鐘快取，實際顯示會落後現況約 1–11 分鐘。</li>
       </ul>
     </div>
+  </div>
+
+  <div lang="en">
+    <p class="arch-intro">
+      This site is the public face of a simplified earthquake early warning (EEW)
+      system running on a Raspberry Pi 4, built around
+      <a href="http://www.earthwormcentral.org/" target="_blank" rel="noopener">Earthworm</a>
+      8.0 — a long-established open-source real-time seismic data processing
+      framework in the seismology community, deployed in Docker (ARM64). The
+      system ingests live data from a RaspberryShake RE81D seismometer and
+      runs three alert tiers concurrently (single-station onsite alerting,
+      per-station real-time intensity, and multi-station network EEW
+      solutions).
+      <strong>The PGA / PGV / waveform data shown on this site is the public
+      output of just one branch of that pipeline</strong>, not a standalone
+      product. Full write-up:
+      <a href="https://github.com/drewhui/RASPBERRYSHAKE_CCU/blob/main/ARCHITECTURE.md">ARCHITECTURE.md</a>.
+    </p>
+
+    <div class="chart-card">
+      <div class="chart-card-head"><h2>Data Sources</h2></div>
+      <ul class="arch-list">
+        <li><strong>RaspberryShake RE81D</strong> (RS1D model, single vertical-component geophone, 100 sps): on the same local network as the Pi, streamed live over the SeedLink protocol — this is the source of the data shown on this site.</li>
+        <li><strong>Remote IRIS stations</strong> (Taiwan CWA broadband network TW + IU network's TATO station): pulled live over the internet from IRIS's SeedLink server, providing the extra stations needed for multi-station location / magnitude estimation. Not shown on this site, but processed through the same Earthworm pipeline.</li>
+      </ul>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-card-head"><h2>Earthworm Core Architecture</h2></div>
+      <p>Earthworm runs on a "shared-memory ring + independent small programs (modules)" model: each module is its own process, reading and writing specific rings, communicating via typed messages on the ring (waveform, pick, event…) rather than calling each other directly. Modules currently running (in startup order):</p>
+      <div class="table-wrap">
+        <table class="arch-table">
+          <thead><tr><th>Module</th><th>Role</th></tr></thead>
+          <tbody>
+            <tr><td><code>statmgr</code></td><td>System heartbeat / health monitoring</td></tr>
+            <tr><td><code>slink2ew</code> ×2</td><td>SeedLink clients — one for the remote IRIS stations, one for the local RaspberryShake — writing into <code>WAVE_RING</code></td></tr>
+            <tr><td><code>pick_ew</code></td><td>Waveform picking: an STA/LTA algorithm detects P-wave arrivals in real time, also computing Pa/Pv/Pd/τc for onsite alerting, writing into <code>PICK_RING</code></td></tr>
+            <tr><td><code>tcpd</code></td><td>Multi-station coincidence association: correlates P-wave picks across stations, forms an event solution once enough stations agree, estimates epicenter and magnitude (Mpd), writing into <code>EEW_RING</code></td></tr>
+            <tr><td><code>dcsn_xml</code></td><td>Formats <code>tcpd</code>'s event solutions into EEW alert XML</td></tr>
+            <tr><td><code>wave_serverV</code></td><td>Ring-buffer waveform archive, queryable by external tools (e.g. Swarm)</td></tr>
+            <tr><td><code>diskmgr</code> / <code>copystatus</code></td><td>Disk space management, status message relay to <code>HYPO_RING</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-card-head"><h2>Data Flow (RaspberryShake → this site)</h2></div>
+      <div class="pipeline">
+        <div class="pipe-box">RaspberryShake RE81D<br><span class="pipe-sub">SHZ, 100sps</span></div>
+        <div class="pipe-arrow">SeedLink →</div>
+        <div class="pipe-box">slink2ew<br><span class="pipe-sub">2nd instance</span></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box">WAVE_RING</div>
+      </div>
+      <div class="pipeline pipeline-branch">
+        <div class="pipe-arrow">↓</div>
+      </div>
+      <div class="pipeline">
+        <div class="pipe-box">pick_ew<br><span class="pipe-sub">P-pick + onsite</span></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box">tcpd → dcsn_xml<br><span class="pipe-sub">multi-station location / magnitude</span></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box">station_watch.py<br><span class="pipe-sub">real-time PGV/PGA, CWA intensity</span></div>
+      </div>
+      <div class="pipeline">
+        <div class="pipe-arrow">↓</div>
+      </div>
+      <div class="pipeline">
+        <div class="pipe-box">This site's snapshot + trend + daily archive</div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box">dashboard_push.sh<br><span class="pipe-sub">host cron, every minute</span></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box">GitHub Pages<br><span class="pipe-sub">this site</span></div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-card-head"><h2>Three Alert Tiers (fast to slow, single-station to multi-station)</h2></div>
+      <ol class="arch-list arch-list-ordered">
+        <li><strong>Onsite τc-Pd alert</strong> — every time <code>pick_ew</code> completes a P-wave pick, it also computes Pa/Pv/Pd/τc, applying the Wu &amp; Kanamori criterion (Pd and τc both above threshold) to judge whether the event may be damaging. Single-station, results within seconds of the P wave arriving — the fastest tier, but also the one with the highest false-alarm rate.</li>
+        <li><strong>Per-station real-time intensity</strong> — a custom <code>station_watch.py</code> (not built into Earthworm, reads <code>WAVE_RING</code> directly via PyEW) converts raw counts to ground velocity in real time, measuring PGV, differentiating it into PGA, and mapping against Taiwan CWA's 2020 intensity scale. This is a direct measurement, not a prediction — it can't be "wrong" in that sense, only limited by data latency (~1–2s for the local RaspberryShake, ~10–20s for the remote IRIS stations).</li>
+        <li><strong>Network EEW</strong> — <code>tcpd</code> requires P-wave picks from multiple stations to be mutually consistent (arrival time and distance both within threshold) before forming a solution; <code>dcsn_xml</code> then converts it into a formal XML alert. This is the most stable tier (cross-validated across stations), but also the slowest, and needs several stations to trigger together — a single RaspberryShake can't produce this on its own, and its output isn't shown on this site.</li>
+      </ol>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-card-head"><h2>Known Limitations</h2></div>
+      <ul class="arch-list">
+        <li>The RaspberryShake RE81D is an RS1D model — hardware-wise it has only a single vertical-component geophone, no horizontal components, and no strong-motion accelerometer, so readings above roughly intensity level 4 may be distorted by signal clipping.</li>
+        <li>Station location is shown at city-level only — precise coordinates aren't published.</li>
+        <li>GitHub Pages' CDN caches the data files for up to 10 minutes on top of the push interval, so the displayed data can lag reality by roughly 1–11 minutes.</li>
+      </ul>
+    </div>
+  </div>
+
   </section>
 
   <footer class="site-footer">
-    <p>資料每分鐘同步一次，加上網頁快取，實際顯示可能落後現況約 1–11 分鐘，非逐秒即時。震度為現場實測換算值，非官方發布資料，僅供參考。時間皆為台灣時間（UTC+8）。</p>
-    <p><a href="https://github.com/drewhui/RASPBERRYSHAKE_CCU/tree/main/data/archive">歷史資料封存（按日）</a>：近 90 天逐日原始資料，可在 GitHub 上直接瀏覽或下載。</p>
+    <p lang="zh-Hant">資料每分鐘同步一次，加上網頁快取，實際顯示可能落後現況約 1–11 分鐘，非逐秒即時。震度為現場實測換算值，非官方發布資料，僅供參考。時間皆為台灣時間（UTC+8）。</p>
+    <p lang="en">Data is synced once a minute; combined with page caching, the display may lag reality by roughly 1–11 minutes — this is not second-by-second real time. Intensity values are derived from on-site measurement, not official published data, for reference only. All times are Taiwan Time (UTC+8).</p>
+    <p lang="zh-Hant"><a href="https://github.com/drewhui/RASPBERRYSHAKE_CCU/tree/main/data/archive">歷史資料封存（按日）</a>：近 90 天逐日原始資料，可在 GitHub 上直接瀏覽或下載。</p>
+    <p lang="en"><a href="https://github.com/drewhui/RASPBERRYSHAKE_CCU/tree/main/data/archive">Historical data archive (daily)</a>: raw daily data for the last 90 days, browsable or downloadable directly on GitHub.</p>
     <p id="updated-line">—</p>
   </footer>
 

@@ -82,6 +82,12 @@ body {
   font-size: 0.9rem;
 }
 
+.header-controls {
+  flex: none;
+  display: flex;
+  gap: 8px;
+}
+
 .theme-toggle {
   flex: none;
   width: 36px;
@@ -94,6 +100,24 @@ body {
   cursor: pointer;
 }
 .theme-toggle:hover { background: var(--gridline); }
+
+.lang-toggle {
+  flex: none;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.lang-toggle:hover { background: var(--gridline); }
+
+:root:not([data-lang="en"]) [lang="en"] { display: none; }
+:root[data-lang="en"] [lang="zh-Hant"] { display: none; }
 
 .tab-nav {
   display: flex;
