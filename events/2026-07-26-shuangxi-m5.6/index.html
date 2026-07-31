@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2026-07-26 雙溪地震 (M5.6) — RE81D 觀測記錄</title>
+<meta name="description" content="RaspberryShake RE81D 對 2026-07-26 雙溪地震 (M5.6) 的觀測記錄：P波到時、最大加速度、震度分級">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌐</text></svg>">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="page">
+
+  <header class="site-header">
+    <div class="title-block">
+      <h1>2026-07-26 雙溪地震 (M5.6) — RE81D 觀測記錄</h1>
+      <p class="subtitle">2026-07-26 Shuangxi Earthquake (M5.6) — RE81D station report</p>
+    </div>
+  </header>
+
+  <div class="chart-card">
+    <div class="chart-card-head"><h2>事件摘要 Summary</h2></div>
+    <ul class="arch-list">
+      <li><strong>發震時刻 Origin time：</strong>2026-07-26 20:36:17 CST (12:36:17 UTC)</li>
+      <li><strong>地點 Location：</strong>雙溪，新北市 (Shuangxi, New Taipei City)</li>
+      <li><strong>規模 Magnitude：</strong>M5.6</li>
+      <li><strong>測站 Station：</strong>RE81D（本站，台北）</li>
+    </ul>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card-head"><h2>P 波到時 P-wave Arrival</h2></div>
+    <p><strong>20:36:30.509 CST (12:36:30.509 UTC)</strong></p>
+    <p>這個時間點是<strong>事後用 STA/LTA 演算法重新估算</strong>的結果，不是系統
+    當下自動判斷出來的。這起地震發生時，本站上游用來做多站協同定位的遠端測站
+    （IRIS 資料流）剛好斷線中，所以「網路型 EEW」那一層完全沒有出解，Telegram/
+    Discord 也沒有推播——只有 RE81D 自己的即時震度量測層有反應（見下方）。</p>
+    <p lang="en" style="color:var(--text-secondary)">This is a <strong>post-hoc
+    estimate</strong> (classic STA/LTA on the bandpass-filtered waveform), not a
+    live system determination — the network-EEW tier had no upstream station
+    data at the time (an external feed was down) and never produced a solution
+    for this event.</p>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card-head"><h2>最大加速度 Peak Acceleration (PGA)</h2></div>
+    <p><strong>34.28 gal，出現在 20:36:32.249 CST (12:36:32.249 UTC)</strong>
+    ——事後對波形做 0.075–12 Hz 濾波後，在加速度序列上取絕對值最大點。</p>
+    <p>本站即時演算法（<code>station_watch.py</code>，用來即時推播震度告警的
+    那一層）當下量到的峰值是 <strong>40.11 gal</strong>，時間點是 20:36:35
+    CST。兩個數字不同，是因為即時演算法為了低延遲不做頻帶濾波，事後分析多了
+    一道濾波，會讓數值系統性地略低——但兩者換算出來的中央氣象署震度分級結果
+    一致，都是 <strong>4 級</strong>。</p>
+    <p lang="en" style="color:var(--text-secondary)">The real-time onsite
+    algorithm measured a peak of 40.11 gal (unfiltered, optimized for low
+    latency); this offline, bandpass-filtered reanalysis gives 34.28 gal.
+    Both classify as CWA intensity level 4 — the discrepancy is purely a
+    filtering-methodology difference, not a data or calibration error.</p>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card-head"><h2>波形圖 Waveform</h2></div>
+    <img src="waveform_RE81D.png" alt="RE81D acceleration/velocity/displacement waveform for the 2026-07-26 Shuangxi M5.6 earthquake, with origin time, P-wave arrival, and peak acceleration marked" style="max-width:100%; height:auto; border-radius:8px; border:1px solid var(--border);">
+    <p style="color:var(--text-secondary); font-size:0.9rem; margin-top:8px">
+    加速度／速度／位移三軸波形，X 軸為實際台灣時間 (CST)。圖上綠色虛線為發震
+    時刻，紅色虛線為 P 波到時（事後估算），橘色虛線為最大加速度到時。資料來源
+    為 RE81D 站上自身儲存的原始波形檔（RaspberryShake 機載 archive），因為
+    Earthworm 系統的 wave_serverV 循環暫存在事發當時就已經把這段資料覆寫掉了。
+    </p>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card-head"><h2>備註 Notes</h2></div>
+    <ul class="arch-list">
+      <li>本頁數字全部來自 RE81D 這一站自己的實測，不是中央氣象署正式發布資料，僅供參考。</li>
+      <li>RE81D 是 RS1D 型號，只有單一垂直分量檢波器，沒有強震型加速度計，4 級以上量測可能因訊號削波而失真。</li>
+      <li>P 波到時為事後 STA/LTA 估算，非系統即時判斷；最大加速度到時精確到毫秒，直接取自濾波後加速度序列的絕對值最大點。</li>
+    </ul>
+  </div>
+
+  <p><a href="../">&larr; 回地震事件列表 / Back to event list</a> ・
+  <a href="../../">回即時監測首頁 / Back to live dashboard</a></p>
+
+</div>
+</body>
+</html>
