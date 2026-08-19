@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2026-08-19 SSIF 震度預測驗證 — RE81D 觀測記錄</title>
+<meta name="description" content="RE81D 站 SSIF 機器學習震度預測模型首次成功產生預測結果的驗證記錄">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌐</text></svg>">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<div class="page">
+
+  <header class="site-header">
+    <div class="title-block">
+      <h1>2026-08-19 SSIF 震度預測驗證 — RE81D 觀測記錄</h1>
+      <p class="subtitle">2026-08-19 SSIF Intensity-Prediction Validation — RE81D station report</p>
+    </div>
+  </header>
+
+  <section class="kpi-row" aria-label="重點結果">
+    <div class="stat-tile">
+      <div class="stat-label">修復前累積觸發次數</div>
+      <div class="stat-value" style="color:var(--status-critical);">1640<span class="stat-unit">次全部 skip</span></div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-label">修復後首次驗證</div>
+      <div class="stat-value" style="color:var(--status-good);">4/5<span class="stat-unit">視窗成功預測</span></div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-label">預測震度（15秒視窗）</div>
+      <div class="stat-value" style="color:var(--status-critical);">5-<span class="stat-unit">級，信心 99.96%</span></div>
+    </div>
+  </section>
+
+  <div class="chart-card">
+    <div class="chart-card-head"><h2>這是什麼 What is this</h2></div>
+    <p>SSIF 是一個實驗性的機器學習模型，用單一測站最近幾秒到幾十秒的波形，
+    預測震度接下來會不會超過某個等級。這個模型 2026-08-17 接上系統以來，
+    因為一個時間點計算的 bug，<strong>累積 1640 次觸發全部被跳過，從沒真正
+    預測過</strong>。這頁記錄修好那個 bug 之後，第一次真的看到模型輸出預測結果。</p>
+    <p lang="en" style="color:var(--text-secondary)">SSIF is an experimental
+    ML model that predicts whether shaking intensity will exceed a given
+    level from a single station's recent waveform. Since it was wired in on
+    2026-08-17, a timing bug caused all 1640 attempts to be skipped without
+    ever producing a real prediction. This page documents the first real
+    output after the fix.</p>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card-head"><h2>問題出在哪 The Bug</h2></div>
+    <p>模型每秒都會嘗試讀取那一秒的波形資料，但程式碼用「現在的系統時間」去
+    查詢，沒有考慮到感測器封包本身送達需要約 0.7-1 秒的延遲。而且每一秒只有
+    一次查詢機會，查詢時機太早、資料還沒到，那一秒就永久記錄成「無資料」。
+    修法是讓查詢延後 2 秒再執行，等封包確實送達再讀取。</p>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card-head"><h2>驗證結果 Validation Result</h2></div>
+    <p>2026-08-19 07:34:33 UTC（15:34:33 CST）人為手動搖動 RE81D 感測器本體，
+    製造一次夠大力、持續數十秒的真實訊號：</p>
+    <div class="table-wrap">
+      <table style="width:100%; min-width:480px; border-collapse:collapse; font-size:13px; margin-top:8px;">
+        <thead><tr>
+          <th style="text-align:left; padding:6px 8px; border-bottom:1px solid var(--border); color:var(--text-muted); font-weight:500; font-size:11px;">視窗</th>
+          <th style="text-align:right; padding:6px 8px; border-bottom:1px solid var(--border); color:var(--text-muted); font-weight:500; font-size:11px;">預測震度</th>
+          <th style="text-align:right; padding:6px 8px; border-bottom:1px solid var(--border); color:var(--text-muted); font-weight:500; font-size:11px;">信心</th>
+          <th style="text-align:right; padding:6px 8px; border-bottom:1px solid var(--border); color:var(--text-muted); font-weight:500; font-size:11px;">alert 機率</th>
+          <th style="text-align:right; padding:6px 8px; border-bottom:1px solid var(--border); color:var(--text-muted); font-weight:500; font-size:11px;">結果</th>
+        </tr></thead>
+        <tbody>
+          <tr><td style="padding:6px 8px; border-bottom:1px solid var(--border);">EW15（15秒）</td><td style="text-align:right; padding:6px 8px; border-bottom:1px solid var(--border); font-weight:600;">5-級</td><td style="text-align:right; padding:6px 8px; border-bottom:1px solid var(--border);">91.6%</td><td style="text-align:right; padding:6px 8px; border-bottom:1px solid var(--border);">99.96%</td><td style="text-align:right; padding:6px 8px; border-bottom:1px solid var(--border); color:var(--status-good);">預測成功</td></tr>
+          <tr><td style="padding:6px 8px; border-bottom:1px solid var(--border);">EW20（20秒）</td><td style="text-align:right; padding:6px 8px; border-bottom:1px solid var(--border); font-weight:600;">4級</td><td style="text-align:right; padding:6px 8px; border-bottom:1px solid var(--border);">99.4%</td><td style="text-align:right; padding:6px 8px; border-bottom:1px solid var(--border);">99.98%</td><td style="text-align:right; padding:6px 8px; border-bottom:1px solid var(--border); color:var(--status-good);">預測成功</td></tr>
+          <tr><td style="padding:6px 8px; border-bottom:1px solid var(--border);">EW25（25秒）</td><td style="text-align:right; padding:6px 8px; border-bottom:1px solid var(--border); font-weight:600;">4級</td><td style="text-align:right; padding:6px 8px; border-bottom:1px solid var(--border);">99.7%</td><td style="text-align:right; padding:6px 8px; border-bottom:1px solid var(--border);">99.97%</td><td style="text-align:right; padding:6px 8px; border-bottom:1px solid var(--border); color:var(--status-good);">預測成功</td></tr>
+          <tr><td style="padding:6px 8px; border-bottom:1px solid var(--border);">EW30（30秒）</td><td style="text-align:right; padding:6px 8px; border-bottom:1px solid var(--border); font-weight:600;">4級</td><td style="text-align:right; padding:6px 8px; border-bottom:1px solid var(--border);">98.3%</td><td style="text-align:right; padding:6px 8px; border-bottom:1px solid var(--border);">99.99%</td><td style="text-align:right; padding:6px 8px; border-bottom:1px solid var(--border); color:var(--status-good);">預測成功</td></tr>
+          <tr><td style="padding:6px 8px;">EW35（35秒）</td><td style="text-align:right; padding:6px 8px;">—</td><td style="text-align:right; padding:6px 8px;">—</td><td style="text-align:right; padding:6px 8px;">—</td><td style="text-align:right; padding:6px 8px; color:var(--text-muted);">跳過（差一點）</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="color:var(--text-secondary); font-size:0.85rem; margin-top:10px;">EW35 沒過門檻（valid_fraction 0.77，需要 0.80），可能是這次手動搖動持續
+    時間不夠長。Onsite（τc-Pd）那層獨立觸發，判斷一致：<code>pd=0.8559 tc=1.527</code>。</p>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card-head"><h2>波形圖 Waveform</h2></div>
+    <img src="waveform_RE81D.png" alt="RE81D velocity waveform for the 2026-08-19 manual shake test used to validate the SSIF prediction fix" style="max-width:100%; height:auto; border-radius:8px; border:1px solid var(--border);">
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card-head"><h2>備註 Notes</h2></div>
+    <ul class="arch-list">
+      <li>這是<strong>人為手動搖動測試</strong>，不是真實地震，用途純粹是驗證修復是否生效。</li>
+      <li>SSIF 目前仍是觀察用（observation-only），預測結果不會觸發正式警報，只記錄下來供分析。</li>
+      <li>技術細節（bug 根因、程式碼修法）記錄在
+        <a href="https://github.com/drewhui/earthworm-eew/tree/main/docs/events/2026-08-19_ssif_grace_period_validation">earthworm-eew repo</a>。</li>
+    </ul>
+  </div>
+
+  <p><a href="../">&larr; 回地震事件列表 / Back to event list</a> ・
+  <a href="../../">回即時監測首頁 / Back to live dashboard</a></p>
+
+</div>
+</body>
+</html>
