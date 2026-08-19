@@ -18,6 +18,21 @@
     </div>
   </header>
 
+  <section class="kpi-row" aria-label="重點結果">
+    <div class="stat-tile">
+      <div class="stat-label">部署前 每天誤觸發</div>
+      <div class="stat-value" style="color:var(--status-critical);">76–325<span class="stat-unit">次</span></div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-label">部署後（截至目前）</div>
+      <div class="stat-value" style="color:var(--status-good);">0–1<span class="stat-unit">次/小時</span></div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-label">根本原因</div>
+      <div class="stat-value">尚未確定</div>
+    </div>
+  </section>
+
   <div class="chart-card">
     <div class="chart-card-head"><h2>事件摘要 Summary</h2></div>
     <ul class="arch-list">
@@ -43,15 +58,17 @@
       <span><span style="display:inline-block;width:10px;height:2px;background:var(--status-critical);margin-right:5px;"></span>4 級門檻 25 gal</span>
     </p>
     <button id="tblBtn" style="margin-top:16px; font-size:12px; padding:5px 10px; border-radius:6px; border:1px solid var(--border); background:var(--page-plane); color:var(--text-secondary); cursor:pointer;">顯示每小時彙總表</button>
-    <table id="tbl" style="width:100%; border-collapse:collapse; font-size:12px; margin-top:12px; display:none;">
-      <thead><tr>
-        <th style="text-align:left; padding:5px 8px; border-bottom:1px solid var(--border); color:var(--text-muted); font-weight:500; font-size:11px;">時段（CST）</th>
-        <th style="text-align:right; padding:5px 8px; border-bottom:1px solid var(--border); color:var(--text-muted); font-weight:500; font-size:11px;">最大 PGA (gal)</th>
-        <th style="text-align:right; padding:5px 8px; border-bottom:1px solid var(--border); color:var(--text-muted); font-weight:500; font-size:11px;">≥2級 次數</th>
-        <th style="text-align:right; padding:5px 8px; border-bottom:1px solid var(--border); color:var(--text-muted); font-weight:500; font-size:11px;">取樣數</th>
-      </tr></thead>
-      <tbody id="tblBody"></tbody>
-    </table>
+    <div class="table-wrap">
+      <table id="tbl" style="width:100%; min-width:420px; border-collapse:collapse; font-size:12px; margin-top:12px; display:none;">
+        <thead><tr>
+          <th style="text-align:left; padding:5px 8px; border-bottom:1px solid var(--border); color:var(--text-muted); font-weight:500; font-size:11px;">時段（CST）</th>
+          <th style="text-align:right; padding:5px 8px; border-bottom:1px solid var(--border); color:var(--text-muted); font-weight:500; font-size:11px;">最大 PGA (gal)</th>
+          <th style="text-align:right; padding:5px 8px; border-bottom:1px solid var(--border); color:var(--text-muted); font-weight:500; font-size:11px;">≥2級 次數</th>
+          <th style="text-align:right; padding:5px 8px; border-bottom:1px solid var(--border); color:var(--text-muted); font-weight:500; font-size:11px;">取樣數</th>
+        </tr></thead>
+        <tbody id="tblBody"></tbody>
+      </table>
+    </div>
   </div>
 
   <div class="chart-card">
@@ -195,11 +212,13 @@ function fmtTime(ms) {
 
 const levelNames = {0:'0級',1:'1級',2:'2級',3:'3級',4:'4級'};
 
-svg.addEventListener('pointermove', (ev) => {
+svg.style.touchAction = 'none';
+
+function updateHover(clientX) {
   const rect = svg.getBoundingClientRect();
   const scaleX = W / rect.width;
-  const mx = (ev.clientX - rect.left) * scaleX;
-  if (mx < M.left || mx > W - M.right) { return; }
+  let mx = (clientX - rect.left) * scaleX;
+  mx = Math.max(M.left, Math.min(W - M.right, mx));
   const p = findNearest(mx);
   const x = xScale(p[0]), y = yScale(p[1]);
   hoverDot.setAttribute('cx', x); hoverDot.setAttribute('cy', y);
@@ -209,12 +228,23 @@ svg.addEventListener('pointermove', (ev) => {
   crosshair.style.display = '';
   tooltip.style.display = '';
   tooltip.innerHTML = `<div style="color:var(--text-secondary); font-size:10.5px; margin-bottom:2px;">${fmtTime(p[0])}</div>PGA <b>${p[1].toFixed(2)} gal</b><br>PGV ${p[2].toFixed(4)} cm/s ・ ${levelNames[p[3]]||p[3]}`;
-  let leftPx = ev.clientX - rect.left + 14;
-  if (leftPx + 150 > rect.width) leftPx = ev.clientX - rect.left - 160;
+  let leftPx = clientX - rect.left + 14;
+  if (leftPx + 150 > rect.width) leftPx = clientX - rect.left - 160;
   tooltip.style.left = leftPx + 'px';
   tooltip.style.top = (y * (rect.height / H)) + 'px';
+}
+
+// pointerdown covers a simple tap (mobile) that never fires pointermove;
+// pointermove covers mouse hover and a touch-drag scrub across the line.
+svg.addEventListener('pointerdown', (ev) => updateHover(ev.clientX));
+svg.addEventListener('pointermove', (ev) => {
+  if (ev.pointerType === 'touch' && ev.buttons === 0 && !ev.pressure) return;
+  updateHover(ev.clientX);
 });
-svg.addEventListener('pointerleave', () => {
+// Only auto-hide on mouse leaving the chart -- a touch tap has no hover
+// state to "leave", so keep the tooltip pinned until the next tap.
+svg.addEventListener('pointerleave', (ev) => {
+  if (ev.pointerType === 'touch') return;
   hoverDot.style.display = 'none';
   crosshair.style.display = 'none';
   tooltip.style.display = 'none';
